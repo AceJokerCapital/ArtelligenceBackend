@@ -5,7 +5,7 @@ import cors from 'cors';
 import connectDB from './mongodb/connect.js';//inernal libraries
 import postRoutes from './routes/postRoutes.js'
 import dalleRoutes from './routes/dalleRoutes.js'
-
+import userRoutes from './routes/userRoutes.js'
 
 
 dotenv.config();
@@ -19,7 +19,7 @@ app.use(express.json({ limit: '50mb' }));
 
 app.use('/api/v1/post-x', postRoutes); //created api endpoints or access route like app.get is using the '/' route this will use the '/api/v1/post' to execute queries 
 app.use('/api/v1/dalle-x', dalleRoutes);
-
+app.use('/api/v1/user-x', userRoutes);
 
 
 app.get('/', async (req, res) => { //created an endpoint '/' or route
@@ -30,7 +30,7 @@ const startserver = async () => {
 
     try {
         connectDB(process.env.MONGODB_URL);
-        app.listen(10000, () => console.log('Server has started on port http://localhost:10000'))
+        app.listen(8080, () => console.log('Server has started on port http://localhost:8080'))
     } catch (error) {
         console.log(error);
 

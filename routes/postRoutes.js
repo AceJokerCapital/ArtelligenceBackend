@@ -35,19 +35,39 @@ router.route('/').get(async (req, res) => {
 
 })
 
+//get only user submitted images with the user sub id
+router.route('/profile-posts').get(async (req, res) => {
+
+    try {
+        const { sub } = req.body;
+
+        const posts = await Post.find({ sub });
+
+        res.status(200).json({ success: true, data: posts });
+
+    } catch (error) {
+        res.status(500).json({ success: false, message: error });
+    }
+
+
+
+})
+
+
 
 
 //Create a post
 router.route('/').post(async (req, res) => {
 
     try {
-        const { name, prompt, photo } = req.body;
+        const { name, prompt, photo, creatorId } = req.body;
 
         console.log(name)
         const pohotUrl = await cloudinary.uploader.upload(photo);
 
         const newPost = await Post.create({ //Post schema from models we are using the .create function to add a new entry
             name,
+            creatorId,
             prompt,
             photo: pohotUrl.url,
 

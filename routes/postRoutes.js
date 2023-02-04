@@ -73,12 +73,17 @@ router.route('/').delete(async (req, res) => {
 
     try {
         const { key, value } = req.body;
+        const keySpec = key.toLowerCase();
 
+        if (keySpec == 'prompt' || keySpec == 'name') {
+            const deletion = await Post.deleteMany({ [keySpec]: value });
+            console.log(deletion);
 
-        const deletion = await Post.deleteMany({ [key]: value });
-        console.log(deletion);
+            res.status(200).send({ success: true, message: `Deleted ${deletion}` });
+        } else {
+            throw ('Incorrect Delete key');
+        }
 
-        res.status(200).send({ success: true, message: `Deleted ${deletion}` });
     } catch (error) {
 
         res.status(500).send({ success: false, message: error + ' & Deletion failed' });

@@ -35,25 +35,6 @@ router.route('/').get(async (req, res) => {
 
 })
 
-//get only user submitted images with the user sub id
-router.route('/profile-posts').get(async (req, res) => {
-
-    try {
-        const { sub } = req.body;
-
-        const posts = await Post.find({ sub });
-
-        res.status(200).json({ success: true, data: posts });
-
-    } catch (error) {
-        res.status(500).json({ success: false, message: error });
-    }
-
-
-
-})
-
-
 
 
 //Create a post
@@ -106,5 +87,61 @@ router.route('/').delete(async (req, res) => {
 
 
 })
+
+
+
+
+//get only user submitted images with the user sub id
+router.route('/profile-posts').post(async (req, res) => {
+
+    try {
+        const { sub } = req.body;
+
+        const posts = await Post.find({ creatorId: sub });
+        res.status(200).json({ success: true, data: posts });
+
+    } catch (error) {
+        res.status(500).json({ success: false, message: error });
+    }
+
+
+
+})
+
+//DELETE INDIVIDAUL USER POSTS
+router.route('/profile-posts-delete').delete(async (req, res) => {
+
+    try {
+        const { prompt, photo } = req.body;
+        const response = await Post.deleteOne({ prompt, photo });
+
+        res.status(202).send({ success: true, message: response })
+
+    } catch (error) {
+
+        res.status(500).send({ success: false, message: error })
+
+    }
+
+
+})
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 export default router; //must export router which will return the routes or new end point

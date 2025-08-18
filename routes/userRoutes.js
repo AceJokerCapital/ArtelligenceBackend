@@ -1,45 +1,117 @@
-import express from 'express';
-import * as dotenv from 'dotenv';
+import express from "express";
+import * as dotenv from "dotenv";
 
-import User from '../mongodb/models/user.js';
+import User from "../mongodb/models/user.js";
 
 dotenv.config();
 
 const router = express.Router();
 
-router.route('/').post(async (req, res) => {
+/* router.route("/").get(async (req, res) => {
+  res.status(200).json({ success: true, message: "route is working" });
+}); */
 
+router.route("/").post(async (req, res) => {
+  try {
+    const { sub, name, picture } = req.body;
 
-   try {
+    let response;
+    const doesUserExist = await User.findOne({ sub });
 
-      const { sub, name, picture } = req.body;
+    if (!doesUserExist) {
+      response = await User.create({
+        sub,
+        name,
+        userPhoto: picture,
+        apiKey: null,
+      });
+    } else {
+      response = "user already exists";
+    }
 
-      let response;
-      const doesUserExist = await User.findOne({ sub });
+    res.status(201).send({ success: true, message: response });
+  } catch (error) {
+    res.status(500).send({ success: false, message: "Server error: " + error });
+  }
+});
 
-      if (doesUserExist == '') {
-         response = await User.create({
-            sub: sub,
-            name: name,
-            userPhoto: picture,
-         })
-      } else {
+router
+  .route("/api-key/:userId?")
+  .get(async (req, res) => {
+    const { userId } = req.params;
 
-         response = 'user already exists';
+    if (!userId && userId == "") {
+      res.status(400).json({
+        success: false,
+        message: "User id not found",
+      });
 
+      return;
+    }
+
+    const user = await User.findOne({ sub: userId });
+
+    if (!user) {
+      res.status(400).json({
+        success: false,
+        message: "User does not exist",
+      });
+      return;
+    }
+
+    //success
+
+    res.status(200).json({
+      success: true,
+      message: "Api key retrieval successful",
+      data: {
+        sub: user.sub,
+        apiKey: user.apiKey,
+      },
+    });
+  })
+  .post(async (req, res) => {
+    try {
+      const { sub, apiKey } = req.body;
+
+      if (!sub || !apiKey) {
+        res.status(400).json({
+          success: false,
+          message: "Required payload missing: sub or apiKey",
+        });
       }
 
-      res.status(201).send({ success: true, message: response });
+      const user = await User.findOne({ sub: sub });
 
-   } catch (error) {
+      if (!user) {
+        res.status(500).json({
+          success: false,
+          message: "The user was not found to update the api key to",
+        });
+        return;
+      }
 
-      res.status(500).send({ success: false, message: 'Server error: ' + error })
-   }
+      const updateRes = await User.updateOne({ sub }, { $set: { apiKey } });
+      console.log(updateRes);
 
-})
+      if (!updateRes || !updateRes.acknowledged) {
+        res.status(500).json({
+          success: false,
+          message: "The api key could not be updated",
+        });
+        return;
+      }
 
-
-
-
+      res.status(200).json({
+        success: true,
+        message: "Api key updated successfully",
+      });
+    } catch (error) {
+      res.status(500).json({
+        success: false,
+        message: `Server: Unknown error caught: ${error}`,
+      });
+    }
+  });
 
 export default router;

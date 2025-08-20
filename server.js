@@ -6,6 +6,9 @@ import connectDB from "./mongodb/connect.js"; //inernal libraries
 import postRoutes from "./routes/postRoutes.js";
 import dalleRoutes from "./routes/dalleRoutes.js";
 import userRoutes from "./routes/userRoutes.js";
+import session from "express-session";
+import MongoStore from "connect-mongo";
+import { mongoose } from "mongoose";
 
 dotenv.config();
 
@@ -39,22 +42,37 @@ app.use(
 
 // Handle preflight
 app.options("*", cors());
-app.use(express.json({ limit: "50mb" }));
 app.disable("strict routing");
 
-//an api endpoint is like a home directory within it many api requests will be executed such as get post etc. to that endpoint
-/* app.use((req, res, next) => {
-  if (req.path.substr(-1) === "/" && req.path.length > 1) {
-    const query = req.url.slice(req.path.length);
-    return res.redirect(301, req.path.slice(0, -1) + query);
-  }
-  next();
-}); */
+//APP USE
+app.use(express.json({ limit: "50mb" }));
 
+await connectDB(process.env.MONGODB_URL);
+const mongoDb = mongoose.connection;
+
+app.use(
+  session({
+    secret: process.env.SESSION_SECRET,
+    name: "artelligence-auth-tkn",
+    resave: false,
+    saveUninitialized: false,
+    store: MongoStore.create({
+      client: mongoDb.getClient(),
+      collectionName: "session",
+    }),
+    cookie: {
+      maxAge: 1000 * 60 * 60 * 24, //1 day
+      httpOnly: true,
+      secure: process.env.NODE_ENV === "production",
+      sameSite: "lax",
+    },
+  })
+);
+
+//ROUTES
 app.use("/api/v1/post-x", postRoutes); //created api endpoints or access route like app.get is using the '/' route this will use the '/api/v1/post' to execute queries
 app.use("/api/v1/dalle-x", dalleRoutes);
 app.use("/api/v1/user-x", userRoutes);
-
 
 app.get("/", async (req, res) => {
   //created an endpoint '/' or route
@@ -63,7 +81,6 @@ app.get("/", async (req, res) => {
 
 const startserver = async () => {
   try {
-    connectDB(process.env.MONGODB_URL);
     app.listen(8080, () => {
       console.log("Server has started on port http://localhost:8080/");
       console.log(AllowedOrigin);

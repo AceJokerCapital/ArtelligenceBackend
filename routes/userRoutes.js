@@ -1,6 +1,6 @@
 import express from "express";
 import * as dotenv from "dotenv";
-
+import { encrypt, decrypt } from "../utils/functions/encryption.js";
 import User from "../mongodb/models/user.js";
 
 dotenv.config();
@@ -28,6 +28,18 @@ router.route("/").post(async (req, res) => {
     } else {
       response = "user already exists";
     }
+
+    const sessionObj = {
+      sub,
+      name,
+      picture,
+    };
+
+    Object.keys(sessionObj).forEach((key) => {
+      req.session[key] = sessionObj[key];
+    });
+
+    req.session.save();
 
     res.status(201).send({ success: true, message: response });
   } catch (error) {
@@ -60,13 +72,16 @@ router
     }
 
     //success
-
+    const decryptedApiKey =
+      decrypt(`${user.apiKey}`) ?? typeof user?.apiKey === "string"
+        ? user.apiKey
+        : "";
     res.status(200).json({
       success: true,
       message: "Api key retrieval successful",
       data: {
         sub: user.sub,
-        apiKey: user.apiKey,
+        apiKey: decryptedApiKey,
       },
     });
   })
@@ -91,7 +106,11 @@ router
         return;
       }
 
-      const updateRes = await User.updateOne({ sub }, { $set: { apiKey } });
+      const encryptedApiKey = encrypt(apiKey);
+      const updateRes = await User.updateOne(
+        { sub },
+        { $set: { apiKey: encryptedApiKey } }
+      );
       console.log(updateRes);
 
       if (!updateRes || !updateRes.acknowledged) {

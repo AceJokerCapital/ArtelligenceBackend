@@ -10,19 +10,20 @@ if (!process.env.OPENAI_API_KEY) {
 
 const router = express.Router();
 
-const configuration = new Configuration({
-  apiKey: process.env.OPENAI_API_KEY,
-});
-
-const openai = new OpenAIApi(configuration);
-
 router.get("/", (req, res) => {
   res.send("Hello from Dall-E!");
 });
 
 router.post("/", async (req, res) => {
   try {
-    const { prompt } = req.body;
+    const { prompt, apiKey } = req.body;
+
+    console.log("apikey: ", apiKey);
+
+    const configuration = new Configuration({
+      apiKey: apiKey ? apiKey : process.env.OPENAI_API_KEY,
+    });
+    const openai = new OpenAIApi(configuration);
 
     if (!prompt || prompt.trim() === "") {
       return res.status(400).json({ error: "Prompt is required" });

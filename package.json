@@ -6,7 +6,8 @@
   "main": "server.js",
   "scripts": {
     "server": "nodemon server",
-    "dev": "nodemon server"
+    "dev": "nodemon server",
+    "render": "npm install && nodemon server"
   },
   "keywords": [],
   "author": "",

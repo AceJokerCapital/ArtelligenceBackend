@@ -13,7 +13,9 @@ export function encrypt(text) {
     encryptedData += cipher.final("hex");
 
     const authTag = cipher.getAuthTag().toString("hex");
-    const encryptedStr = `${iv.toString("hex") + ":" + authTag + ":" + encryptedData}`;
+    const encryptedStr = `${
+      iv.toString("hex") + ":" + authTag + ":" + encryptedData
+    }`;
     //console.log("ENCRYPTED: ", encryptedStr, typeof encryptedStr);
     return encryptedStr;
   } catch (error) {
@@ -25,9 +27,9 @@ export function decrypt(encrypted) {
   try {
     const ENC_KEY = Buffer.from(BASE_64_KEY, "base64");
     //console.log(JSON.stringify(encrypted), typeof encrypted);
-    
-    
+
     const [ivHex, authTagHex, cipherText] = encrypted.split(":");
+    //console.log("SPLIT DATA", ivHex, authTagHex, cipherText);
     const iv = Buffer.from(ivHex, "hex");
     const authTag = Buffer.from(authTagHex, "hex");
     const decipher = crypto.createDecipheriv("aes-256-gcm", ENC_KEY, iv);
@@ -35,10 +37,11 @@ export function decrypt(encrypted) {
 
     let decryptedData = decipher.update(cipherText, "hex", "utf8");
     decryptedData += decipher.final("utf8");
-
+    
+    //console.log(decryptedData);
     return decryptedData;
   } catch (error) {
-   console.log('decryption failed', error);
+    console.log("decryption failed", error);
     return null;
   }
 }

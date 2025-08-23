@@ -9,6 +9,8 @@ import userRoutes from "./routes/userRoutes.js";
 import session from "express-session";
 import MongoStore from "connect-mongo";
 import { mongoose } from "mongoose";
+import { sessionAuthMiddleware } from "./middleware/auth.js";
+import apiKeyRoutes from "./routes/apiKeyRoutes.js";
 
 dotenv.config();
 
@@ -50,6 +52,7 @@ app.use(express.json({ limit: "50mb" }));
 await connectDB(process.env.MONGODB_URL);
 const mongoDb = mongoose.connection;
 
+//SESSION MIDDLEWARE
 app.use(
   session({
     secret: process.env.SESSION_SECRET,
@@ -69,10 +72,14 @@ app.use(
   })
 );
 
+//GLOBAL MIDDLEWARE
+app.use(sessionAuthMiddleware);
+
 //ROUTES
-app.use("/api/v1/post-x", postRoutes); //created api endpoints or access route like app.get is using the '/' route this will use the '/api/v1/post' to execute queries
-app.use("/api/v1/dalle-x", dalleRoutes);
-app.use("/api/v1/user-x", userRoutes);
+app.use("/api/v1/post", postRoutes);
+app.use("/api/v1/dalle", dalleRoutes);
+app.use("/api/v1/user", userRoutes);
+app.use("/api/v1/api-key", apiKeyRoutes);
 
 app.get("/", async (req, res) => {
   //created an endpoint '/' or route

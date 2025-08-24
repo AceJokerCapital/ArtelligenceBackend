@@ -80,11 +80,12 @@ app.use(
       client: mongoDb.getClient(),
       collectionName: "session",
     }),
+    rolling: true,
     cookie: {
       maxAge: 1000 * 60 * 60 * 24, //1 day
       httpOnly: true,
       secure: process.env.NODE_ENV === "production",
-      sameSite: "none"
+      sameSite: "none",
     },
   })
 );
@@ -102,6 +103,9 @@ app.get("/", async (req, res) => {
   //created an endpoint '/' or route
   res.send("Welcome To Artelligence API");
 });
+
+//FOR RENDERER (BECAUSE RENDER IS A PROXY and not a direct location);
+app.set("trust proxy", 1);
 
 const startserver = async () => {
   try {

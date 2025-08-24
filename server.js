@@ -17,14 +17,13 @@ dotenv.config();
 const app = express();
 
 const AllowedOrigin = process.env.ALLOWED_ORIGINS;
+const originArray = AllowedOrigin.split(",").map((urls) => {
+  return urls.trim().toLowerCase();
+});
 
 app.use(
   cors({
     origin: (origin, callback) => {
-      const originArray = AllowedOrigin.split(",").map((urls) => {
-        return urls.trim().toLowerCase();
-      });
-
       if (!origin) {
         return callback(null, true); // allow server-to-server calls
       }
@@ -85,7 +84,7 @@ app.use(
       maxAge: 1000 * 60 * 60 * 24, //1 day
       httpOnly: true,
       secure: process.env.NODE_ENV === "production",
-      sameSite: process.env.NODE_ENV === "production" ? "none" : "lax",
+      sameSite: "none"
     },
   })
 );
@@ -108,7 +107,7 @@ const startserver = async () => {
   try {
     app.listen(8080, () => {
       console.log("Server has started on port http://localhost:8080/");
-      console.log(AllowedOrigin);
+      console.log(originArray);
     });
   } catch (error) {
     console.log(error);

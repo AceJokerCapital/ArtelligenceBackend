@@ -43,7 +43,25 @@ app.use(
 );
 
 // Handle preflight
-app.options("*", cors());
+app.options(
+  "*",
+  cors({
+    origin: (origin, callback) => {
+      const originArray = AllowedOrigin.split(",").map((url) =>
+        url.trim().toLowerCase()
+      );
+      if (!origin) return callback(null, true);
+      if (!originArray.includes(origin.toLowerCase())) {
+        return callback(new Error(`Not allowed by CORS, origin: ${origin}`));
+      }
+      return callback(null, true);
+    },
+    credentials: true,
+    methods: ["GET", "POST", "PUT", "DELETE", "OPTIONS"],
+    allowedHeaders: ["Content-Type", "Authorization"],
+  })
+);
+
 app.disable("strict routing");
 
 //APP USE
@@ -67,7 +85,7 @@ app.use(
       maxAge: 1000 * 60 * 60 * 24, //1 day
       httpOnly: true,
       secure: process.env.NODE_ENV === "production",
-      sameSite: process.env.NODE_ENV === "production"? "none" : "lax",
+      sameSite: process.env.NODE_ENV === "production" ? "none" : "lax",
     },
   })
 );
